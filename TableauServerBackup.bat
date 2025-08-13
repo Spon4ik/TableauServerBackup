@@ -26,9 +26,9 @@ set TRACE=1
 if defined TRACE echo [TRACE] Command echo enabled for debugging.
 
 :: Set date and time in yyyyMMdd_HH-mm-ss format
-for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value | findstr ="') do set datetime=%%I
-set today=%datetime:~0,4%%datetime:~4,2%%datetime:~6,2%
-set timestamp=%datetime:~0,4%%datetime:~4,2%%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HH-mm-ss"') do set timestamp=%%I
+set today=%timestamp:~0,8%
+if "%timestamp%"=="" (echo [ERROR] Unable to determine timestamp & exit /b 1)
 
 :: === Read paths from system environment variables ===
 set "DataDir=%TABLEAU_SERVER_DATA_DIR%"

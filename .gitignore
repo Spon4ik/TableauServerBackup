@@ -1,0 +1,20 @@
+# Prevent accidental leaks of artifacts and logs
+backups/
+nppBackup/
+log/
+settings/
+*.tsbak
+server_settings-*.json
+*.log
+*.history
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editors/IDE
+.vscode/
+.idea/
+*.code-workspace
+
+TableauServerBackup_*.bat

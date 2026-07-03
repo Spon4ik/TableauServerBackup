@@ -1,0 +1,26 @@
+# Runtime configuration. Git tracks *.example.* templates only.
+config/MailSettings.json
+config/*.local.json
+config/MailSettings_*.json
+
+# Runtime output
+backups/
+backup/
+log/
+logs/
+settings/
+*.tsbak
+server_settings-*.json
+backup_log_*.log
+
+# Local editor and scratch backups
+nppBackup/
+**/nppBackup/
+*.bak
+*_20*.ps1
+*_20*.json
+
+# PowerShell/test caches
+TestResults/
+*.tmp
+

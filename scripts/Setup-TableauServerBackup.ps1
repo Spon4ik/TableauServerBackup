@@ -35,6 +35,22 @@ param(
 
     [AllowEmptyString()]
     [string]$RetentionDays = ''
+    ,
+
+    [AllowEmptyString()]
+    [string]$MaintenanceCleanupEnabled = '',
+
+    [AllowEmptyString()]
+    [string]$TableauLogRetentionDays = '',
+
+    [AllowEmptyString()]
+    [string]$HttpRequestsCleanupEnabled = '',
+
+    [AllowEmptyString()]
+    [string]$HttpRequestsRetentionDays = '',
+
+    [AllowEmptyString()]
+    [string]$ReindexEnabled = ''
 )
 
 Set-StrictMode -Version 2.0
@@ -139,6 +155,11 @@ if ($Interactive) {
     $MailFrom = Read-SetupValue -Prompt 'Mail From' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_FROM' -Scope $Scope)
     $MailTo = Read-SetupValue -Prompt 'Mail To, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_TO' -Scope $Scope)
     $RetentionDays = Read-SetupValue -Prompt 'Backup/settings retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Scope $Scope)
+    $MaintenanceCleanupEnabled = Read-SetupValue -Prompt 'Maintenance cleanup enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED' -Scope $Scope)
+    $TableauLogRetentionDays = Read-SetupValue -Prompt 'Tableau log retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_TABLEAU_LOG_RETENTION_DAYS' -Scope $Scope)
+    $HttpRequestsCleanupEnabled = Read-SetupValue -Prompt 'HTTP requests cleanup enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED' -Scope $Scope)
+    $HttpRequestsRetentionDays = Read-SetupValue -Prompt 'HTTP requests retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS' -Scope $Scope)
+    $ReindexEnabled = Read-SetupValue -Prompt 'Reindex search enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_REINDEX_ENABLED' -Scope $Scope)
 }
 
 $allowOverwrite = [bool]($Force -or $Reconfigure)
@@ -153,6 +174,11 @@ $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_USE_SSL' -Valu
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_FROM' -Value $MailFrom -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_TO' -Value $MailTo -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Value $RetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED' -Value $MaintenanceCleanupEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_TABLEAU_LOG_RETENTION_DAYS' -Value $TableauLogRetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED' -Value $HttpRequestsCleanupEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS' -Value $HttpRequestsRetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_REINDEX_ENABLED' -Value $ReindexEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 
 $results | Format-Table -AutoSize
 
@@ -160,4 +186,3 @@ if (-not $WhatIfOnly) {
     Write-Host ''
     Write-Host 'Configuration saved. Open a new elevated PowerShell/Task Scheduler session if you used User or Machine scope.'
 }
-

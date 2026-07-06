@@ -153,9 +153,10 @@ function ConvertTo-MaskedConfigSummary {
         MailFromConfigured         = -not (Test-ConfigEmpty $Config.MailFrom)
         MailToCount                = $mailTargetCount
         RetentionDays              = $Config.RetentionDays
+        TableauLogRetentionDays    = $Config.TableauLogRetentionDays
         MaintenanceCleanupEnabled  = $Config.MaintenanceCleanupEnabled
         HttpRequestsCleanupEnabled = $Config.HttpRequestsCleanupEnabled
+        HttpRequestsRetentionDays  = $Config.HttpRequestsRetentionDays
         ReindexEnabled             = $Config.ReindexEnabled
     }
 }
-

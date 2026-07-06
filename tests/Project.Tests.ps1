@@ -32,6 +32,9 @@ Describe 'Setup script' {
         $env:TABLEAU_SERVER_DATA_DIR = $null
         $env:TABLEAU_BACKUP_ROOT = $null
         $env:TABLEAU_BACKUP_MAIL_TO = $null
+        $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED = $null
+        $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS = $null
+        $env:TABLEAU_BACKUP_REINDEX_ENABLED = $null
     }
 
     It 'writes requested process environment values in non-interactive mode' {
@@ -43,11 +46,17 @@ Describe 'Setup script' {
             -TableauServerDataDir $tableauData `
             -BackupRoot $backupRoot `
             -MailTo 'admin@example.com' `
+            -HttpRequestsCleanupEnabled 'true' `
+            -HttpRequestsRetentionDays '730' `
+            -ReindexEnabled 'true' `
             -Force | Out-Null
 
         $env:TABLEAU_SERVER_DATA_DIR | Should Be $tableauData
         $env:TABLEAU_BACKUP_ROOT | Should Be $backupRoot
         $env:TABLEAU_BACKUP_MAIL_TO | Should Be 'admin@example.com'
+        $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED | Should Be 'true'
+        $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS | Should Be '730'
+        $env:TABLEAU_BACKUP_REINDEX_ENABLED | Should Be 'true'
     }
 
     It 'does not overwrite existing process environment values without Reconfigure or Force' {

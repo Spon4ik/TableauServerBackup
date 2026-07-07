@@ -40,5 +40,4 @@ The setup script keeps existing values unless `-Reconfigure` or `-Force` is used
 - `TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS`
 - `TABLEAU_BACKUP_REINDEX_ENABLED`
 
-`config/MailSettings.example.json` documents the old JSON shape for reference only. The real script reads mail settings from environment variables.
-
+Mail settings are read from environment variables only. Do not add local mail JSON files to Git.

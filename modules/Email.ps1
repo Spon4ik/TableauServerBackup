@@ -9,16 +9,8 @@ Set-StrictMode -Version 2.0
 #### Reads:
 #### Environment variables via modules\Config.ps1
 ####
-#### Supports both config styles:
-#### 1) Nested SMTP object:
-####    {
-####      "Enabled": true,
-####      "Smtp": { "Server": "smtp.example.com", "Port": 25, "UseSsl": false },
-####      "From": "...",
-####      "To": ["...", "..."]
-####    }
-#### 2) Older flat keys:
-####    { "SmtpServer": "...", "SmtpPort": 25, "UseSsl": false }
+#### Converts environment-backed runtime config into the mail object used by
+#### validation and Send-MailMessage.
 #### =====================================================================
 
 function Test-IsEmpty {
@@ -136,7 +128,7 @@ function Get-SmtpConfigValue {
         $DefaultValue = $null
     )
 
-    # Backward compatibility: old flat JSON keys.
+    # Accept older flat key names for callers that pass a mail object directly.
     $flatValue = Get-ConfigValue -Config $EmailConfig -Names $Names -DefaultValue $null
     if ($null -ne $flatValue) {
         return $flatValue
@@ -230,12 +222,12 @@ function Test-MailSettings {
 
     if (Test-IsEmpty $from) {
         $knownKeys = Get-ConfigPropertyNamesText -Config $EmailConfig
-        throw "Mail settings validation failed: Mail From is empty. Available MailSettings.json keys: $knownKeys"
+        throw "Mail settings validation failed: Mail From is empty. Available mail setting keys: $knownKeys"
     }
 
     if (@($to).Count -eq 0) {
         $knownKeys = Get-ConfigPropertyNamesText -Config $EmailConfig
-        throw "Mail settings validation failed: Mail To is empty. Available MailSettings.json keys: $knownKeys"
+        throw "Mail settings validation failed: Mail To is empty. Available mail setting keys: $knownKeys"
     }
 
     try {

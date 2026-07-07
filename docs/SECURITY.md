@@ -11,11 +11,11 @@ Before publishing or pushing:
 git status --short --ignored
 ```
 
-Expected local-only examples:
+Expected local-only artifacts:
 
-- `config/MailSettings.local.json`
+- local `config/*.local.json` files
+- local `config/MailSettings.json`
 - backup files
 - logs
 - settings exports
 - editor backup folders
-

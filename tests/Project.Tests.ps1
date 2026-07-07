@@ -5,14 +5,8 @@ Describe 'Project hygiene' {
         Test-Path (Join-Path $ProjectRoot 'config\MailSettings.json') | Should Be $false
     }
 
-    It 'provides a public-safe mail settings example' {
-        $examplePath = Join-Path $ProjectRoot 'config\MailSettings.example.json'
-
-        Test-Path $examplePath | Should Be $true
-
-        $text = Get-Content -LiteralPath $examplePath -Raw
-        $text | Should Match 'smtp\.example\.com'
-        $text | Should Not Match '@(?!example\.com)'
+    It 'does not track obsolete mail settings examples' {
+        Test-Path (Join-Path $ProjectRoot 'config\MailSettings.example.json') | Should Be $false
     }
 
     It 'ignores local runtime configuration and backup artifacts' {

@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.1 - 2026-07-07
+
+Cleanup release.
+
+- Removed the obsolete `config/MailSettings.example.json` file.
+- Updated documentation and tests to reflect environment-only mail configuration.
+- Removed stale `MailSettings.json` wording from mail validation messages.
+
 ## v0.2.0 - 2026-07-06
 
 Backward-compatible configuration release.

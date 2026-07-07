@@ -2,7 +2,7 @@
 
 Windows PowerShell 5.1 automation for Tableau Server backups through TSM.
 
-The project is intentionally safe to clone and pull from Git. Git contains scripts, docs, tests, and public-safe examples only. Real server paths, mail addresses, SMTP hosts, retention choices, and other local configuration are stored in environment variables on the Tableau Server machine, not in tracked files.
+The project is intentionally safe to clone and pull from Git. Git contains scripts, docs, and tests only. Real server paths, mail addresses, SMTP hosts, retention choices, and other local configuration are stored in environment variables on the Tableau Server machine, not in tracked files.
 
 ## First Setup
 

@@ -1,5 +1,58 @@
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
+Describe 'Email status body' {
+    BeforeAll {
+        . (Join-Path $ProjectRoot 'modules\Email.ps1')
+    }
+
+    It 'summarizes a successful backup without SMTP delivery caveats' {
+        $body = New-BackupStatusEmailBody `
+            -FinalRc 0 `
+            -ComputerName 'TABLEAU01' `
+            -BackupFile 'D:\backup\site.tsbak' `
+            -LogFile 'D:\backup\log\backup_log_20260707.log'
+
+        $body | Should Match 'Status\s+: SUCCESS'
+        $body | Should Match 'Run Type\s+: Normal backup'
+        $body | Should Match 'Run Summary:'
+        $body | Should Match 'Backup workflow completed successfully\.'
+        $body | Should Not Match 'Important:'
+        $body | Should Not Match 'Send-MailMessage'
+        $body | Should Not Match 'SMTP relay accepted'
+        $body | Should Not Match 'Inbox delivery'
+    }
+
+    It 'includes failure status, exit code, and failure summary' {
+        $body = New-BackupStatusEmailBody `
+            -FinalRc 8 `
+            -FailureSummary 'Expected backup file was not found.' `
+            -ComputerName 'TABLEAU01'
+
+        $body | Should Match 'Status\s+: FAILED'
+        $body | Should Match 'Exit Code\s+: 8'
+        $body | Should Match 'Expected backup file was not found\.'
+    }
+
+    It 'identifies dry-run messages' {
+        $body = New-BackupStatusEmailBody `
+            -FinalRc 0 `
+            -DryRun $true `
+            -ComputerName 'TABLEAU01'
+
+        $body | Should Match 'Run Type\s+: Dry run'
+    }
+
+    It 'identifies email-only test messages' {
+        $body = New-BackupStatusEmailBody `
+            -FinalRc 0 `
+            -EmailOnlyTest $true `
+            -ComputerName 'TABLEAU01'
+
+        $body | Should Match 'Run Type\s+: Email-only test'
+        $body | Should Match 'Email-only test completed\. No Tableau operations were executed\.'
+    }
+}
+
 Describe 'Project hygiene' {
     It 'does not track runtime mail settings under the real runtime name' {
         Test-Path (Join-Path $ProjectRoot 'config\MailSettings.json') | Should Be $false

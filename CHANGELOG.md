@@ -2,6 +2,15 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.2 - 2026-07-07
+
+Notification content release.
+
+- Removed SMTP relay delivery caveats from composed status emails.
+- Kept SMTP handoff caveats in log and interactive console output after successful submission.
+- Improved status email wording for normal, dry-run, failure, and email-only-test runs.
+- Added repo-local agent guidance for version bumps, checks, and local commits.
+
 ## v0.2.1 - 2026-07-07
 
 Cleanup release.

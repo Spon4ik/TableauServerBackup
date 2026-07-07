@@ -267,14 +267,12 @@ function New-BackupStatusEmailBody {
         $statusText = 'FAILED'
     }
 
-    $dryRunText = 'No'
-    if ($DryRun) {
-        $dryRunText = 'Yes'
-    }
-
-    $emailOnlyTestText = 'No'
+    $runTypeText = 'Normal backup'
     if ($EmailOnlyTest) {
-        $emailOnlyTestText = 'Yes'
+        $runTypeText = 'Email-only test'
+    }
+    elseif ($DryRun) {
+        $runTypeText = 'Dry run'
     }
 
     $backupFileText = $BackupFile
@@ -282,13 +280,16 @@ function New-BackupStatusEmailBody {
         $backupFileText = '(not available)'
     }
 
-    $failureSummaryText = $FailureSummary
-    if ([string]::IsNullOrWhiteSpace($failureSummaryText)) {
-        if ($FinalRc -eq 0) {
-            $failureSummaryText = '(no failure)'
+    $runSummaryText = $FailureSummary
+    if ([string]::IsNullOrWhiteSpace($runSummaryText)) {
+        if ($EmailOnlyTest) {
+            $runSummaryText = 'Email-only test completed. No Tableau operations were executed.'
+        }
+        elseif ($FinalRc -eq 0) {
+            $runSummaryText = 'Backup workflow completed successfully.'
         }
         else {
-            $failureSummaryText = '(failure details were not provided)'
+            $runSummaryText = 'Backup workflow failed, but failure details were not provided.'
         }
     }
 
@@ -298,18 +299,13 @@ function New-BackupStatusEmailBody {
         "Computer        : $ComputerName",
         "Status          : $statusText",
         "Exit Code       : $FinalRc",
-        "Dry Run         : $dryRunText",
-        "Email Only Test : $emailOnlyTestText",
+        "Run Type       : $runTypeText",
         "Backup File     : $backupFileText",
         "Log File        : $LogFile",
         "Timestamp       : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')",
         '',
-        'Failure Details:',
-        $failureSummaryText,
-        '',
-        'Important:',
-        'PowerShell Send-MailMessage success means the SMTP relay accepted the message.',
-        'It does not guarantee final Inbox delivery.',
+        'Run Summary:',
+        $runSummaryText,
         '',
         'This message was generated automatically.'
     )
@@ -520,6 +516,7 @@ function Send-BackupStatusEmail {
         Send-MailMessage @mailParams
 
         Write-Log '[INFO] Status email submitted successfully to SMTP relay.'
+        Write-Log '[INFO] SMTP relay acceptance confirms message handoff only; final inbox delivery depends on downstream mail systems.'
         return $true
     }
     catch {

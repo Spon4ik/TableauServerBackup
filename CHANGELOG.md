@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.3 - 2026-07-07
+
+Release process guidance release.
+
+- Clarified that keeping GitHub current requires a pushed branch, pushed release tag, and GitHub Release object.
+- Required GitHub Release notes to come from the matching changelog entry unless overridden by the user.
+- Required release completion verification against the GitHub Release URL.
+
 ## v0.2.2 - 2026-07-07
 
 Notification content release.

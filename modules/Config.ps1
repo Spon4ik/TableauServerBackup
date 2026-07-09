@@ -84,6 +84,7 @@ function Get-BackupRuntimeConfig {
         MailDeliveryNotification    = $env:TABLEAU_BACKUP_MAIL_DELIVERY_NOTIFICATION
         RetentionDays               = Get-ConfigInt -Value $env:TABLEAU_BACKUP_RETENTION_DAYS -DefaultValue 5
         MinimumBackupFilesToKeep    = Get-ConfigInt -Value $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP -DefaultValue 2
+        SettingsRetentionDays       = Get-ConfigInt -Value $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS -DefaultValue 0
         TableauLogRetentionDays     = Get-ConfigInt -Value $env:TABLEAU_BACKUP_TABLEAU_LOG_RETENTION_DAYS -DefaultValue 7
         MaintenanceCleanupEnabled   = ConvertTo-ConfigBoolean -Value $env:TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED -DefaultValue $true
         HttpRequestsCleanupEnabled  = ConvertTo-ConfigBoolean -Value $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED -DefaultValue $false
@@ -155,6 +156,7 @@ function ConvertTo-MaskedConfigSummary {
         MailToCount                = $mailTargetCount
         RetentionDays              = $Config.RetentionDays
         MinimumBackupFilesToKeep   = $Config.MinimumBackupFilesToKeep
+        SettingsRetentionDays      = $Config.SettingsRetentionDays
         TableauLogRetentionDays    = $Config.TableauLogRetentionDays
         MaintenanceCleanupEnabled  = $Config.MaintenanceCleanupEnabled
         HttpRequestsCleanupEnabled = $Config.HttpRequestsCleanupEnabled

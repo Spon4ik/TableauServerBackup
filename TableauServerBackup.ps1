@@ -540,6 +540,7 @@ try {
                 SettingsPath = $SettingsPath
                 DaysToKeep = $RuntimeConfig.RetentionDays
                 MinimumBackupFilesToKeep = $RuntimeConfig.MinimumBackupFilesToKeep
+                SettingsDaysToKeep = $RuntimeConfig.SettingsRetentionDays
             } | Out-Null
     }
 

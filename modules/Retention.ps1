@@ -14,7 +14,9 @@ function Invoke-BackupRetention {
 
         [int]$DaysToKeep = 5,
 
-        [int]$MinimumBackupFilesToKeep = 2
+        [int]$MinimumBackupFilesToKeep = 2,
+
+        [int]$SettingsDaysToKeep = 0
     )
 
     $cutoff = (Get-Date).AddDays(-1 * $DaysToKeep)
@@ -64,16 +66,23 @@ function Invoke-BackupRetention {
     }
 
     Write-Log ''
-    Write-Log "[STEP] Deleting settings files older than $DaysToKeep days from settings path..."
+    if ($SettingsDaysToKeep -le 0) {
+        Write-Log "[INFO] Settings retention is disabled. Existing settings files will be preserved."
+        return 0
+    }
+
+    $settingsCutoff = (Get-Date).AddDays(-1 * $SettingsDaysToKeep)
+
+    Write-Log "[STEP] Deleting settings files older than $SettingsDaysToKeep days from settings path..."
     Write-Log "[INFO] Settings retention path: $SettingsPath"
-    Write-Log "[INFO] Settings retention cutoff: $cutoff"
+    Write-Log "[INFO] Settings retention cutoff: $settingsCutoff"
 
     try {
         if (Test-Path -LiteralPath $SettingsPath -PathType Container) {
-            $settingsFiles = Get-ChildItem -LiteralPath $SettingsPath -Filter 'server_settings-*.json' -File -ErrorAction SilentlyContinue |
-                Where-Object { $_.LastWriteTime -lt $cutoff }
+            $settingsFiles = @(Get-ChildItem -LiteralPath $SettingsPath -Filter 'server_settings-*.json' -File -ErrorAction SilentlyContinue |
+                Where-Object { $_.LastWriteTime -lt $settingsCutoff })
 
-            if ($null -eq $settingsFiles -or $settingsFiles.Count -eq 0) {
+            if (@($settingsFiles).Count -eq 0) {
                 Write-Log "[INFO] No old settings files matched retention."
             }
             else {

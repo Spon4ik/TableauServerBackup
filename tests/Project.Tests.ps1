@@ -98,6 +98,36 @@ Describe 'Backup retention' {
         Test-Path -LiteralPath (Join-Path $backupPath 'backup-2.tsbak') | Should Be $true
         Test-Path -LiteralPath (Join-Path $backupPath 'backup-3.tsbak') | Should Be $true
     }
+
+    It 'keeps old settings files when settings retention is not configured' {
+        $backupPath = Join-Path $TestDrive 'backups'
+        $settingsPath = Join-Path $TestDrive 'settings'
+        New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+        New-Item -Path $settingsPath -ItemType Directory -Force | Out-Null
+
+        $settingsFile = Join-Path $settingsPath 'server_settings-20260101_00-00-00.json'
+        Set-Content -LiteralPath $settingsFile -Encoding ASCII -Value '{}'
+        (Get-Item -LiteralPath $settingsFile).LastWriteTime = (Get-Date).AddDays(-180)
+
+        Invoke-BackupRetention -BackupPath $backupPath -SettingsPath $settingsPath -DaysToKeep 5 | Out-Null
+
+        Test-Path -LiteralPath $settingsFile | Should Be $true
+    }
+
+    It 'deletes old settings files when settings retention is configured' {
+        $backupPath = Join-Path $TestDrive 'backups'
+        $settingsPath = Join-Path $TestDrive 'settings'
+        New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+        New-Item -Path $settingsPath -ItemType Directory -Force | Out-Null
+
+        $settingsFile = Join-Path $settingsPath 'server_settings-20260101_00-00-00.json'
+        Set-Content -LiteralPath $settingsFile -Encoding ASCII -Value '{}'
+        (Get-Item -LiteralPath $settingsFile).LastWriteTime = (Get-Date).AddDays(-180)
+
+        Invoke-BackupRetention -BackupPath $backupPath -SettingsPath $settingsPath -DaysToKeep 5 -SettingsDaysToKeep 30 | Out-Null
+
+        Test-Path -LiteralPath $settingsFile | Should Be $false
+    }
 }
 
 Describe 'Runtime configuration' {
@@ -109,6 +139,7 @@ Describe 'Runtime configuration' {
         $env:TABLEAU_BACKUP_ROOT = Join-Path $TestDrive 'backup-root'
         $env:TABLEAU_SERVER_DATA_DIR = Join-Path $TestDrive 'tableau-data'
         $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = $null
+        $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS = $null
     }
 
     It 'reads minimum backup files to keep from the environment' {
@@ -123,6 +154,20 @@ Describe 'Runtime configuration' {
         $config = Get-BackupRuntimeConfig
 
         $config.MinimumBackupFilesToKeep | Should Be 2
+    }
+
+    It 'reads settings retention days from the environment' {
+        $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS = '90'
+
+        $config = Get-BackupRuntimeConfig
+
+        $config.SettingsRetentionDays | Should Be 90
+    }
+
+    It 'defaults settings retention days to zero so settings files are preserved' {
+        $config = Get-BackupRuntimeConfig
+
+        $config.SettingsRetentionDays | Should Be 0
     }
 }
 
@@ -153,6 +198,7 @@ Describe 'Setup script' {
         $env:TABLEAU_BACKUP_ROOT = $null
         $env:TABLEAU_BACKUP_MAIL_TO = $null
         $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = $null
+        $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS = $null
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED = $null
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS = $null
         $env:TABLEAU_BACKUP_REINDEX_ENABLED = $null
@@ -168,6 +214,7 @@ Describe 'Setup script' {
             -BackupRoot $backupRoot `
             -MailTo 'admin@example.com' `
             -MinimumBackupFilesToKeep '4' `
+            -SettingsRetentionDays '90' `
             -HttpRequestsCleanupEnabled 'true' `
             -HttpRequestsRetentionDays '730' `
             -ReindexEnabled 'true' `
@@ -177,6 +224,7 @@ Describe 'Setup script' {
         $env:TABLEAU_BACKUP_ROOT | Should Be $backupRoot
         $env:TABLEAU_BACKUP_MAIL_TO | Should Be 'admin@example.com'
         $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP | Should Be '4'
+        $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS | Should Be '90'
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED | Should Be 'true'
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS | Should Be '730'
         $env:TABLEAU_BACKUP_REINDEX_ENABLED | Should Be 'true'

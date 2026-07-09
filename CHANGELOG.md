@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.6 - 2026-07-09
+
+Settings retention release.
+
+- Preserve exported Tableau settings files by default instead of deleting them with backup retention.
+- Added `TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS` to optionally delete very old settings files when set to a positive number.
+- Added interactive and non-interactive setup support for settings retention days.
+
 ## v0.2.5 - 2026-07-09
 
 Configurable retention safety release.

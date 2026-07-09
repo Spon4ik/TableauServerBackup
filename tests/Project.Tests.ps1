@@ -51,6 +51,53 @@ Describe 'Email status body' {
         $body | Should Match 'Run Type\s+: Email-only test'
         $body | Should Match 'Email-only test completed\. No Tableau operations were executed\.'
     }
+
+    It 'adds actionable disk-space details from the run log to failed messages' {
+        $logFile = Join-Path $TestDrive 'backup.log'
+        Set-Content -LiteralPath $logFile -Encoding ASCII -Value @(
+            '[2026-07-09 00:17:33.587] 50% - Insufficient disk space to generate backup on the following nodes: ''node1'''
+            '[2026-07-09 00:17:33.608] One or more nodes in the cluster do not appear to have enough free disk space to allow generation of a backup.'
+        )
+
+        $body = New-BackupStatusEmailBody `
+            -FinalRc 7 `
+            -FailureSummary 'Backup creation command failed with exit code 1.' `
+            -ComputerName 'TABLEAU01' `
+            -LogFile $logFile
+
+        $body | Should Match 'Failure Details:'
+        $body | Should Match 'Insufficient disk space to generate backup'
+        $body | Should Match 'node1'
+    }
+}
+
+Describe 'Backup retention' {
+    BeforeAll {
+        . (Join-Path $ProjectRoot 'modules\Retention.ps1')
+
+        function Write-Log {
+            param([string]$Message)
+        }
+    }
+
+    It 'keeps at least two tsbak files even when all backups are older than retention' {
+        $backupPath = Join-Path $TestDrive 'backups'
+        $settingsPath = Join-Path $TestDrive 'settings'
+        New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+        New-Item -Path $settingsPath -ItemType Directory -Force | Out-Null
+
+        foreach ($name in @('backup-1.tsbak', 'backup-2.tsbak', 'backup-3.tsbak')) {
+            $file = Join-Path $backupPath $name
+            Set-Content -LiteralPath $file -Encoding ASCII -Value $name
+            (Get-Item -LiteralPath $file).LastWriteTime = (Get-Date).AddDays(-10)
+        }
+
+        Invoke-BackupRetention -BackupPath $backupPath -SettingsPath $settingsPath -DaysToKeep 5 | Out-Null
+
+        @(Get-ChildItem -LiteralPath $backupPath -Filter '*.tsbak' -File).Count | Should Be 2
+        Test-Path -LiteralPath (Join-Path $backupPath 'backup-2.tsbak') | Should Be $true
+        Test-Path -LiteralPath (Join-Path $backupPath 'backup-3.tsbak') | Should Be $true
+    }
 }
 
 Describe 'Project hygiene' {

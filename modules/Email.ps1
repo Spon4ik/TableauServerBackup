@@ -240,6 +240,45 @@ function Test-MailSettings {
     return $true
 }
 
+function Get-BackupFailureDetailsFromLog {
+    param(
+        [AllowEmptyString()]
+        [string]$LogFile = ''
+    )
+
+    if ([string]::IsNullOrWhiteSpace($LogFile)) {
+        return @()
+    }
+
+    if (-not (Test-Path -LiteralPath $LogFile -PathType Leaf)) {
+        return @()
+    }
+
+    $patterns = @(
+        'Insufficient disk space',
+        'not appear to have enough free disk space',
+        'override-disk-space-check',
+        'No space left',
+        'There is not enough space',
+        'disk is full'
+    )
+
+    $details = @()
+
+    foreach ($line in (Get-Content -LiteralPath $LogFile -Tail 120 -ErrorAction SilentlyContinue)) {
+        foreach ($pattern in $patterns) {
+            if ($line -match [regex]::Escape($pattern)) {
+                $clean = ($line -replace '^\[[^\]]+\]\s*', '').Trim()
+                if (-not [string]::IsNullOrWhiteSpace($clean) -and -not ($details -contains $clean)) {
+                    $details += $clean
+                }
+            }
+        }
+    }
+
+    return @($details)
+}
+
 function New-BackupStatusEmailBody {
     param(
         [Parameter(Mandatory = $true)]
@@ -293,6 +332,11 @@ function New-BackupStatusEmailBody {
         }
     }
 
+    $failureDetailLines = @()
+    if ($FinalRc -ne 0) {
+        $failureDetailLines = @(Get-BackupFailureDetailsFromLog -LogFile $LogFile)
+    }
+
     $lines = @(
         'Tableau Server Backup Status',
         '',
@@ -305,10 +349,19 @@ function New-BackupStatusEmailBody {
         "Timestamp       : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')",
         '',
         'Run Summary:',
-        $runSummaryText,
-        '',
-        'This message was generated automatically.'
+        $runSummaryText
     )
+
+    if (@($failureDetailLines).Count -gt 0) {
+        $lines += ''
+        $lines += 'Failure Details:'
+        foreach ($line in $failureDetailLines) {
+            $lines += "- $line"
+        }
+    }
+
+    $lines += ''
+    $lines += 'This message was generated automatically.'
 
     return ($lines -join "`r`n")
 }

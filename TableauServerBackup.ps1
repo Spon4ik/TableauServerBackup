@@ -529,6 +529,21 @@ try {
     }
 
     ### -----------------------------------------------------------------
+    ### Retention - non-fatal, before backup creation to free space
+    ### -----------------------------------------------------------------
+
+    Invoke-NonFatalStep -StepName "Apply retention to backup folder before backup creation" -ScriptBlock {
+        Invoke-FunctionIfAvailable `
+            -FunctionName 'Invoke-BackupRetention' `
+            -Parameters @{
+                BackupPath = $BackupPath
+                SettingsPath = $SettingsPath
+                DaysToKeep = $RuntimeConfig.RetentionDays
+                MinimumBackupFilesToKeep = 2
+            } | Out-Null
+    }
+
+    ### -----------------------------------------------------------------
     ### Cleanup / maintenance - non-fatal
     ### -----------------------------------------------------------------
 
@@ -642,20 +657,6 @@ try {
                         -DestinationFolder $BackupPath | Out-Null
                 }
         }
-    }
-
-    ### -----------------------------------------------------------------
-    ### Retention - non-fatal
-    ### -----------------------------------------------------------------
-
-    Invoke-NonFatalStep -StepName "Apply retention to backup folder" -ScriptBlock {
-        Invoke-FunctionIfAvailable `
-            -FunctionName 'Invoke-BackupRetention' `
-            -Parameters @{
-                BackupPath = $BackupPath
-                SettingsPath = $SettingsPath
-                DaysToKeep = $RuntimeConfig.RetentionDays
-            } | Out-Null
     }
 
     $FinalRc = 0

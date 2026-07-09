@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.4 - 2026-07-09
+
+Retention safety and notification detail release.
+
+- Apply backup retention before creating a new Tableau backup so old files can free space first.
+- Preserve at least two `.tsbak` files during retention to avoid deleting every fallback backup after repeated failures.
+- Include actionable disk-space failure lines from the run log in failed status emails.
+
 ## v0.2.3 - 2026-07-07
 
 Release process guidance release.

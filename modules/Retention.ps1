@@ -12,7 +12,9 @@ function Invoke-BackupRetention {
         [Parameter(Mandatory = $true)]
         [string]$SettingsPath,
 
-        [int]$DaysToKeep = 5
+        [int]$DaysToKeep = 5,
+
+        [int]$MinimumBackupFilesToKeep = 2
     )
 
     $cutoff = (Get-Date).AddDays(-1 * $DaysToKeep)
@@ -20,13 +22,24 @@ function Invoke-BackupRetention {
     Write-Log "[STEP] Deleting backup files older than $DaysToKeep days from custom backup path..."
     Write-Log "[INFO] Backup retention path: $BackupPath"
     Write-Log "[INFO] Backup retention cutoff: $cutoff"
+    Write-Log "[INFO] Minimum backup files to keep: $MinimumBackupFilesToKeep"
 
     try {
         if (Test-Path -LiteralPath $BackupPath -PathType Container) {
-            $backupFiles = Get-ChildItem -LiteralPath $BackupPath -Filter '*.tsbak' -File -ErrorAction SilentlyContinue |
-                Where-Object { $_.LastWriteTime -lt $cutoff }
+            $allBackupFiles = @(Get-ChildItem -LiteralPath $BackupPath -Filter '*.tsbak' -File -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending)
 
-            if ($null -eq $backupFiles -or $backupFiles.Count -eq 0) {
+            $protectedBackupPaths = @{}
+            foreach ($file in @($allBackupFiles | Select-Object -First $MinimumBackupFilesToKeep)) {
+                $protectedBackupPaths[$file.FullName] = $true
+            }
+
+            $backupFiles = @($allBackupFiles |
+                Where-Object {
+                    $_.LastWriteTime -lt $cutoff -and -not $protectedBackupPaths.ContainsKey($_.FullName)
+                })
+
+            if (@($backupFiles).Count -eq 0) {
                 Write-Log "[INFO] No old backup files matched retention."
             }
             else {
@@ -36,6 +49,10 @@ function Invoke-BackupRetention {
                 }
 
                 Write-Log "[OK] Backup retention completed."
+            }
+
+            if (@($allBackupFiles).Count -gt 0 -and @($backupFiles).Count -eq 0) {
+                Write-Log "[INFO] Backup retention preserved existing files to keep the minimum safety count."
             }
         }
         else {

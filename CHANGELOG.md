@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.5 - 2026-07-09
+
+Configurable retention safety release.
+
+- Added `TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP` as the environment-backed setting for the minimum retained `.tsbak` safety count.
+- Added interactive and non-interactive setup support for configuring the minimum backup file count.
+- Logged the configured minimum backup file count in the runtime config summary.
+
 ## v0.2.4 - 2026-07-09
 
 Retention safety and notification detail release.

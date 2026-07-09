@@ -100,6 +100,32 @@ Describe 'Backup retention' {
     }
 }
 
+Describe 'Runtime configuration' {
+    BeforeAll {
+        . (Join-Path $ProjectRoot 'modules\Config.ps1')
+    }
+
+    BeforeEach {
+        $env:TABLEAU_BACKUP_ROOT = Join-Path $TestDrive 'backup-root'
+        $env:TABLEAU_SERVER_DATA_DIR = Join-Path $TestDrive 'tableau-data'
+        $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = $null
+    }
+
+    It 'reads minimum backup files to keep from the environment' {
+        $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = '4'
+
+        $config = Get-BackupRuntimeConfig
+
+        $config.MinimumBackupFilesToKeep | Should Be 4
+    }
+
+    It 'defaults minimum backup files to keep to two' {
+        $config = Get-BackupRuntimeConfig
+
+        $config.MinimumBackupFilesToKeep | Should Be 2
+    }
+}
+
 Describe 'Project hygiene' {
     It 'does not track runtime mail settings under the real runtime name' {
         Test-Path (Join-Path $ProjectRoot 'config\MailSettings.json') | Should Be $false
@@ -126,6 +152,7 @@ Describe 'Setup script' {
         $env:TABLEAU_SERVER_DATA_DIR = $null
         $env:TABLEAU_BACKUP_ROOT = $null
         $env:TABLEAU_BACKUP_MAIL_TO = $null
+        $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = $null
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED = $null
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS = $null
         $env:TABLEAU_BACKUP_REINDEX_ENABLED = $null
@@ -140,6 +167,7 @@ Describe 'Setup script' {
             -TableauServerDataDir $tableauData `
             -BackupRoot $backupRoot `
             -MailTo 'admin@example.com' `
+            -MinimumBackupFilesToKeep '4' `
             -HttpRequestsCleanupEnabled 'true' `
             -HttpRequestsRetentionDays '730' `
             -ReindexEnabled 'true' `
@@ -148,6 +176,7 @@ Describe 'Setup script' {
         $env:TABLEAU_SERVER_DATA_DIR | Should Be $tableauData
         $env:TABLEAU_BACKUP_ROOT | Should Be $backupRoot
         $env:TABLEAU_BACKUP_MAIL_TO | Should Be 'admin@example.com'
+        $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP | Should Be '4'
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED | Should Be 'true'
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS | Should Be '730'
         $env:TABLEAU_BACKUP_REINDEX_ENABLED | Should Be 'true'

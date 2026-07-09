@@ -38,6 +38,9 @@ param(
     ,
 
     [AllowEmptyString()]
+    [string]$MinimumBackupFilesToKeep = '',
+
+    [AllowEmptyString()]
     [string]$MaintenanceCleanupEnabled = '',
 
     [AllowEmptyString()]
@@ -155,6 +158,7 @@ if ($Interactive) {
     $MailFrom = Read-SetupValue -Prompt 'Mail From' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_FROM' -Scope $Scope)
     $MailTo = Read-SetupValue -Prompt 'Mail To, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_TO' -Scope $Scope)
     $RetentionDays = Read-SetupValue -Prompt 'Backup/settings retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Scope $Scope)
+    $MinimumBackupFilesToKeep = Read-SetupValue -Prompt 'Minimum backup .tsbak files to keep' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP' -Scope $Scope)
     $MaintenanceCleanupEnabled = Read-SetupValue -Prompt 'Maintenance cleanup enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED' -Scope $Scope)
     $TableauLogRetentionDays = Read-SetupValue -Prompt 'Tableau log retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_TABLEAU_LOG_RETENTION_DAYS' -Scope $Scope)
     $HttpRequestsCleanupEnabled = Read-SetupValue -Prompt 'HTTP requests cleanup enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED' -Scope $Scope)
@@ -174,6 +178,7 @@ $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_USE_SSL' -Valu
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_FROM' -Value $MailFrom -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_TO' -Value $MailTo -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Value $RetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP' -Value $MinimumBackupFilesToKeep -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED' -Value $MaintenanceCleanupEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_TABLEAU_LOG_RETENTION_DAYS' -Value $TableauLogRetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED' -Value $HttpRequestsCleanupEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)

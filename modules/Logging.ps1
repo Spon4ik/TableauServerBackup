@@ -86,7 +86,11 @@ function Invoke-LoggedCommand {
         [int[]]$SuccessExitCodes = @(0),
 
         [AllowEmptyString()]
-        [string]$StepName = ''
+        [string]$StepName = '',
+
+        [switch]$StreamOutput,
+
+        [int]$HeartbeatSeconds = 300
     )
 
     if (-not [string]::IsNullOrWhiteSpace($StepName)) {
@@ -116,6 +120,93 @@ function Invoke-LoggedCommand {
 
     try {
         [void]$process.Start()
+
+        if ($StreamOutput) {
+            $stdoutQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
+            $stderrQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
+            $stdoutEvent = $null
+            $stderrEvent = $null
+            $lastOutputAt = Get-Date
+
+            try {
+                $stdoutEvent = Register-ObjectEvent -InputObject $process -EventName OutputDataReceived -MessageData $stdoutQueue -Action {
+                    if ($null -ne $Event.SourceEventArgs.Data) {
+                        $Event.MessageData.Enqueue([string]$Event.SourceEventArgs.Data)
+                    }
+                }
+
+                $stderrEvent = Register-ObjectEvent -InputObject $process -EventName ErrorDataReceived -MessageData $stderrQueue -Action {
+                    if ($null -ne $Event.SourceEventArgs.Data) {
+                        $Event.MessageData.Enqueue([string]$Event.SourceEventArgs.Data)
+                    }
+                }
+
+                $process.BeginOutputReadLine()
+                $process.BeginErrorReadLine()
+
+                while (-not $process.HasExited) {
+                    $line = $null
+
+                    while ($stdoutQueue.TryDequeue([ref]$line)) {
+                        if (-not [string]::IsNullOrWhiteSpace($line)) {
+                            Write-Log $line
+                            $lastOutputAt = Get-Date
+                        }
+                    }
+
+                    while ($stderrQueue.TryDequeue([ref]$line)) {
+                        if (-not [string]::IsNullOrWhiteSpace($line)) {
+                            Write-Log "[STDERR] $line"
+                            $lastOutputAt = Get-Date
+                        }
+                    }
+
+                    if ($HeartbeatSeconds -gt 0 -and ((Get-Date) - $lastOutputAt).TotalSeconds -ge $HeartbeatSeconds) {
+                        Write-Log "[INFO] Command still running; no output received for $HeartbeatSeconds seconds."
+                        $lastOutputAt = Get-Date
+                    }
+
+                    Start-Sleep -Milliseconds 500
+                }
+
+                $process.WaitForExit()
+
+                $line = $null
+
+                while ($stdoutQueue.TryDequeue([ref]$line)) {
+                    if (-not [string]::IsNullOrWhiteSpace($line)) {
+                        Write-Log $line
+                    }
+                }
+
+                while ($stderrQueue.TryDequeue([ref]$line)) {
+                    if (-not [string]::IsNullOrWhiteSpace($line)) {
+                        Write-Log "[STDERR] $line"
+                    }
+                }
+            }
+            finally {
+                if ($null -ne $stdoutEvent) {
+                    Unregister-Event -SubscriptionId $stdoutEvent.Id -ErrorAction SilentlyContinue
+                    Remove-Job -Id $stdoutEvent.Id -Force -ErrorAction SilentlyContinue
+                }
+
+                if ($null -ne $stderrEvent) {
+                    Unregister-Event -SubscriptionId $stderrEvent.Id -ErrorAction SilentlyContinue
+                    Remove-Job -Id $stderrEvent.Id -Force -ErrorAction SilentlyContinue
+                }
+            }
+
+            $rc = [int]$process.ExitCode
+
+            Write-Log "[RC] $FilePath returned $rc."
+
+            if ($SuccessExitCodes -notcontains $rc) {
+                throw "Command failed. Exit code: $rc. Command: `"$FilePath`" $argText"
+            }
+
+            return $rc
+        }
 
         $stdout = $process.StandardOutput.ReadToEnd()
         $stderr = $process.StandardError.ReadToEnd()

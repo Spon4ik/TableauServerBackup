@@ -2,6 +2,15 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.7 - 2026-07-09
+
+Backup progress and final retention release.
+
+- Apply a second retention pass after a successful backup is moved so the final backup folder count matches the configured retention value.
+- Stream Tableau backup command output into the app log while the backup command is still running.
+- Add a periodic heartbeat log line when a long-running command produces no output for five minutes.
+- Clarified setup and documentation wording for backup retention versus settings retention.
+
 ## v0.2.6 - 2026-07-09
 
 Settings retention release.

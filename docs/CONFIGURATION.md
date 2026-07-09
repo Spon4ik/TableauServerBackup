@@ -42,4 +42,6 @@ The setup script keeps existing values unless `-Reconfigure` or `-Force` is used
 - `TABLEAU_BACKUP_HTTP_REQUESTS_RETENTION_DAYS`
 - `TABLEAU_BACKUP_REINDEX_ENABLED`
 
+`TABLEAU_BACKUP_RETENTION_DAYS` controls backup age cleanup before backup creation and final maximum `.tsbak` count after a successful backup. `TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS` controls settings JSON cleanup only when set to a positive number; blank or `0` keeps settings files.
+
 Mail settings are read from environment variables only. Do not add local mail JSON files to Git.

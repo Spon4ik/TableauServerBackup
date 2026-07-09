@@ -16,7 +16,9 @@ function Invoke-BackupRetention {
 
         [int]$MinimumBackupFilesToKeep = 2,
 
-        [int]$SettingsDaysToKeep = 0
+        [int]$SettingsDaysToKeep = 0,
+
+        [int]$MaxBackupFilesToKeep = 0
     )
 
     $cutoff = (Get-Date).AddDays(-1 * $DaysToKeep)
@@ -55,6 +57,26 @@ function Invoke-BackupRetention {
 
             if (@($allBackupFiles).Count -gt 0 -and @($backupFiles).Count -eq 0) {
                 Write-Log "[INFO] Backup retention preserved existing files to keep the minimum safety count."
+            }
+
+            if ($MaxBackupFilesToKeep -gt 0) {
+                $remainingBackupFiles = @(Get-ChildItem -LiteralPath $BackupPath -Filter '*.tsbak' -File -ErrorAction SilentlyContinue |
+                    Sort-Object LastWriteTime -Descending)
+
+                if (@($remainingBackupFiles).Count -gt $MaxBackupFilesToKeep) {
+                    $effectiveMax = [math]::Max($MaxBackupFilesToKeep, $MinimumBackupFilesToKeep)
+                    $excessBackupFiles = @($remainingBackupFiles | Select-Object -Skip $effectiveMax)
+
+                    foreach ($file in $excessBackupFiles) {
+                        Write-Log "[INFO] Deleting backup file above maximum retained count: $($file.FullName)"
+                        Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
+                    }
+
+                    Write-Log "[OK] Backup maximum-count retention completed."
+                }
+                else {
+                    Write-Log "[INFO] Backup count is within maximum retained count."
+                }
             }
         }
         else {

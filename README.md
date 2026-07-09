@@ -65,6 +65,8 @@ Manual test modes:
 
 This development PC does not need Tableau Server installed. Live TSM backup testing must happen on the Tableau Server machine.
 
+`TABLEAU_BACKUP_RETENTION_DAYS` is used for backup age cleanup before creating a new backup and as the final maximum `.tsbak` count after a successful backup is moved. `TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS` is separate; blank or `0` preserves settings JSON files.
+
 ## Git Hygiene
 
 Before publishing:

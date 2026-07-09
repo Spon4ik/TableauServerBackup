@@ -660,6 +660,23 @@ try {
         }
     }
 
+    ### -----------------------------------------------------------------
+    ### Retention - non-fatal, after backup creation to enforce final count
+    ### -----------------------------------------------------------------
+
+    Invoke-NonFatalStep -StepName "Apply retention to backup folder after backup creation" -ScriptBlock {
+        Invoke-FunctionIfAvailable `
+            -FunctionName 'Invoke-BackupRetention' `
+            -Parameters @{
+                BackupPath = $BackupPath
+                SettingsPath = $SettingsPath
+                DaysToKeep = $RuntimeConfig.RetentionDays
+                MinimumBackupFilesToKeep = $RuntimeConfig.MinimumBackupFilesToKeep
+                SettingsDaysToKeep = $RuntimeConfig.SettingsRetentionDays
+                MaxBackupFilesToKeep = $RuntimeConfig.RetentionDays
+            } | Out-Null
+    }
+
     $FinalRc = 0
     $FailureSummary = ''
 

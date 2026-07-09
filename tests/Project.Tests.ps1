@@ -99,6 +99,30 @@ Describe 'Backup retention' {
         Test-Path -LiteralPath (Join-Path $backupPath 'backup-3.tsbak') | Should Be $true
     }
 
+    It 'trims oldest backup files above the configured maximum count' {
+        $backupPath = Join-Path $TestDrive 'backups'
+        $settingsPath = Join-Path $TestDrive 'settings'
+        New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+        New-Item -Path $settingsPath -ItemType Directory -Force | Out-Null
+
+        1..6 | ForEach-Object {
+            $file = Join-Path $backupPath ("backup-$_.tsbak")
+            Set-Content -LiteralPath $file -Encoding ASCII -Value "backup $_"
+            (Get-Item -LiteralPath $file).LastWriteTime = (Get-Date).AddDays(-1 * (6 - $_))
+        }
+
+        Invoke-BackupRetention `
+            -BackupPath $backupPath `
+            -SettingsPath $settingsPath `
+            -DaysToKeep 30 `
+            -MinimumBackupFilesToKeep 2 `
+            -MaxBackupFilesToKeep 5 | Out-Null
+
+        @(Get-ChildItem -LiteralPath $backupPath -Filter '*.tsbak' -File).Count | Should Be 5
+        Test-Path -LiteralPath (Join-Path $backupPath 'backup-1.tsbak') | Should Be $false
+        Test-Path -LiteralPath (Join-Path $backupPath 'backup-6.tsbak') | Should Be $true
+    }
+
     It 'keeps old settings files when settings retention is not configured' {
         $backupPath = Join-Path $TestDrive 'backups'
         $settingsPath = Join-Path $TestDrive 'settings'
@@ -187,6 +211,27 @@ Describe 'Project hygiene' {
         $gitignore | Should Match 'config/\*\.local\.json'
         $gitignore | Should Match '\*\.tsbak'
         $gitignore | Should Match 'nppBackup/'
+    }
+}
+
+Describe 'Logging commands' {
+    BeforeAll {
+        . (Join-Path $ProjectRoot 'modules\Logging.ps1')
+    }
+
+    It 'captures output when streaming command output is enabled' {
+        $logFile = Join-Path $TestDrive 'stream.log'
+        Initialize-BackupLogging -LogFile $logFile
+
+        $rc = Invoke-LoggedCommand `
+            -FilePath 'powershell.exe' `
+            -Arguments @('-NoProfile', '-Command', 'Write-Output "stream-line-1"; Write-Output "stream-line-2"') `
+            -StreamOutput
+
+        $rc | Should Be 0
+        $logText = Get-Content -LiteralPath $logFile -Raw
+        $logText | Should Match 'stream-line-1'
+        $logText | Should Match 'stream-line-2'
     }
 }
 

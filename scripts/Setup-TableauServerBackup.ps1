@@ -160,7 +160,7 @@ if ($Interactive) {
     $MailUseSsl = Read-SetupValue -Prompt 'SMTP SSL true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_USE_SSL' -Scope $Scope)
     $MailFrom = Read-SetupValue -Prompt 'Mail From' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_FROM' -Scope $Scope)
     $MailTo = Read-SetupValue -Prompt 'Mail To, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_TO' -Scope $Scope)
-    $RetentionDays = Read-SetupValue -Prompt 'Backup/settings retention days' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Scope $Scope)
+    $RetentionDays = Read-SetupValue -Prompt 'Backup retention days and final max backup files' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Scope $Scope)
     $MinimumBackupFilesToKeep = Read-SetupValue -Prompt 'Minimum backup .tsbak files to keep' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP' -Scope $Scope)
     $SettingsRetentionDays = Read-SetupValue -Prompt 'Settings retention days, blank or 0 to keep all' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS' -Scope $Scope)
     $MaintenanceCleanupEnabled = Read-SetupValue -Prompt 'Maintenance cleanup enabled? true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAINTENANCE_CLEANUP_ENABLED' -Scope $Scope)

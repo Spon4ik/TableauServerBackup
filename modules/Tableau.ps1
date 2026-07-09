@@ -222,19 +222,13 @@ function Invoke-TableauBackupCommand {
         [string]$BackupBaseName
     )
 
-    Write-Log "[CMD] `"$TsmPath`" maintenance backup --file `"$BackupBaseName`""
-
-    $output = & $TsmPath maintenance backup --file $BackupBaseName 2>&1
-    $rc = $LASTEXITCODE
-
-    foreach ($line in $output) {
-        Write-Log ([string]$line)
-    }
-
-    if ($null -eq $rc) {
-        $rc = 0
-    }
+    $rc = Invoke-LoggedCommand `
+        -FilePath $TsmPath `
+        -Arguments @('maintenance', 'backup', '--file', $BackupBaseName) `
+        -StreamOutput `
+        -HeartbeatSeconds 300 `
+        -SuccessExitCodes @(0)
 
     Write-Log "[RC] backup command returned $rc."
-    return [int]$rc
+    return $rc
 }

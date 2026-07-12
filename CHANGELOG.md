@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.8 - 2026-07-12
+
+Roadmap refresh release.
+
+- Updated the current-capabilities roadmap through the work shipped in v0.2.7.
+- Clarified the scope of configuration, retention, logging, simulation, and automated test coverage.
+
 ## v0.2.7 - 2026-07-09
 
 Backup progress and final retention release.

@@ -2,10 +2,13 @@
 
 ## Current
 
-- Environment-variable setup and reconfiguration.
-- Public-safe Git candidate files.
-- Local simulation mode for non-Tableau workstations.
-- Pester tests for setup, hygiene, parser health, and simulation output.
+- Environment-variable setup and reconfiguration for backup, maintenance, retention, and email settings.
+- Public-safe repository contents with Git hygiene checks that keep server-specific configuration out of source control.
+- Tableau maintenance, settings export, backup creation, email notification, and local simulation workflows.
+- Backup retention before creation and after a successful move, with a configurable minimum safety count.
+- Independent settings-file retention, preserving exported settings by default.
+- Live TSM backup output in the application log, with heartbeat messages during quiet long-running commands.
+- Pester coverage for setup, configuration, retention, hygiene, parser health, and simulation output.
 
 ## Next
 
@@ -18,4 +21,3 @@
 
 - Add signed-script guidance for stricter Windows execution policies.
 - Add richer notification options if email alone becomes insufficient.
-

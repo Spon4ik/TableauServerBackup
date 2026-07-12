@@ -83,7 +83,4 @@ This project uses Semantic Versioning. Git release tags use `vMAJOR.MINOR.PATCH`
 
 ## Roadmap
 
-- Keep configuration outside Git.
-- Add or update tests before changing behavior.
-- Keep maintenance steps configurable.
-- Improve scheduler installation automation after the core script is stable on the real Tableau host.
+The project roadmap is maintained in [docs/ROADMAP.md](docs/ROADMAP.md).

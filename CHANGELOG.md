@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.9 - 2026-07-12
+
+Roadmap consolidation release.
+
+- Removed the stale duplicate roadmap from the README.
+- Made `docs/ROADMAP.md` the sole roadmap source and linked to it from the README.
+
 ## v0.2.8 - 2026-07-12
 
 Roadmap refresh release.

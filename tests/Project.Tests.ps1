@@ -195,6 +195,102 @@ Describe 'Runtime configuration' {
     }
 }
 
+Describe 'Scheduled task management' {
+    BeforeAll {
+        . (Join-Path $ProjectRoot 'modules\Scheduler.ps1')
+    }
+
+    It 'reports a missing task without changing Task Scheduler' {
+        Mock Get-ScheduledTask { throw 'The system cannot find the file specified.' }
+
+        $summary = Get-TableauBackupScheduledTaskSummary -TaskName 'TableauServerBackup'
+
+        $summary.Exists | Should Be $false
+        $summary.State | Should Be 'NotFound'
+    }
+
+    It 'creates a daily batch task definition' {
+        $batchPath = Join-Path $TestDrive 'TableauServerBackup.bat'
+        Set-Content -LiteralPath $batchPath -Value '@echo off' -Encoding ASCII
+
+        Mock New-ScheduledTaskAction {
+            param($Execute, $WorkingDirectory)
+            [pscustomobject]@{ Execute = $Execute; WorkingDirectory = $WorkingDirectory }
+        }
+        Mock New-ScheduledTaskTrigger {
+            param($At, $DaysInterval)
+            [pscustomobject]@{ At = $At; DaysInterval = $DaysInterval }
+        }
+        Mock New-ScheduledTaskSettingsSet { [pscustomobject]@{ StartWhenAvailable = $true; MultipleInstances = 'IgnoreNew' } }
+
+        $definition = New-TableauBackupScheduledTaskDefinition `
+            -BatchPath $batchPath `
+            -WorkingDirectory $TestDrive `
+            -DailyTime '03:15' `
+            -DaysInterval 2
+
+        $definition.Action.Execute | Should Be $batchPath
+        ([string]$definition.Action.WorkingDirectory) | Should Be ([string]$TestDrive)
+        $definition.Trigger.DaysInterval | Should Be 2
+    }
+
+    It 'previews task creation without prompting for a credential or changing Task Scheduler' {
+        $result = Invoke-TableauBackupScheduledTaskAction `
+            -Action CreateOrUpdate `
+            -TaskName 'TableauServerBackup' `
+            -WhatIfOnly $true
+
+        $result.Planned | Should Be $true
+        $result.Result | Should Be 'No scheduled-task changes were made.'
+    }
+
+    It 'registers a daily task with a supplied credential without emitting its password' {
+        $batchPath = Join-Path $TestDrive 'TableauServerBackup.bat'
+        Set-Content -LiteralPath $batchPath -Value '@echo off' -Encoding ASCII
+        $credential = New-Object pscredential('CONTOSO\TableauBackup', (ConvertTo-SecureString 'test-password' -AsPlainText -Force))
+
+        Mock New-ScheduledTaskAction { [pscustomobject]@{} }
+        Mock New-ScheduledTaskTrigger { [pscustomobject]@{} }
+        Mock New-ScheduledTaskSettingsSet { [pscustomobject]@{} }
+        Mock Register-TableauBackupScheduledTask { }
+        Mock Get-ScheduledTask {
+            [pscustomobject]@{
+                State = 'Ready'
+                Actions = @()
+                Triggers = @()
+                Principal = [pscustomobject]@{ UserId = 'CONTOSO\TableauBackup' }
+            }
+        }
+
+        $result = Invoke-TableauBackupScheduledTaskAction `
+            -Action CreateOrUpdate `
+            -TaskName 'TableauServerBackup' `
+            -BatchPath $batchPath `
+            -WorkingDirectory $TestDrive `
+            -Credential $credential
+
+        $result.UserId | Should Be 'CONTOSO\TableauBackup'
+        ($result | Out-String) | Should Not Match 'test-password'
+        Assert-MockCalled Register-TableauBackupScheduledTask -Times 1 -Exactly -ParameterFilter {
+            $TaskName -eq 'TableauServerBackup' -and $Credential.UserName -eq 'CONTOSO\TableauBackup'
+        }
+    }
+
+    It 'delegates enable, disable, and removal to Task Scheduler' {
+        Mock Enable-ScheduledTask { }
+        Mock Disable-ScheduledTask { }
+        Mock Unregister-ScheduledTask { }
+
+        Invoke-TableauBackupScheduledTaskAction -Action Enable -TaskName 'TableauServerBackup' | Out-Null
+        Invoke-TableauBackupScheduledTaskAction -Action Disable -TaskName 'TableauServerBackup' | Out-Null
+        Invoke-TableauBackupScheduledTaskAction -Action Remove -TaskName 'TableauServerBackup' | Out-Null
+
+        Assert-MockCalled Enable-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'TableauServerBackup' }
+        Assert-MockCalled Disable-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'TableauServerBackup' }
+        Assert-MockCalled Unregister-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'TableauServerBackup' }
+    }
+}
+
 Describe 'Project hygiene' {
     It 'does not track runtime mail settings under the real runtime name' {
         Test-Path (Join-Path $ProjectRoot 'config\MailSettings.json') | Should Be $false
@@ -242,6 +338,10 @@ Describe 'Setup script' {
         $env:TABLEAU_SERVER_DATA_DIR = $null
         $env:TABLEAU_BACKUP_ROOT = $null
         $env:TABLEAU_BACKUP_MAIL_TO = $null
+        $env:TABLEAU_BACKUP_MAIL_CC = $null
+        $env:TABLEAU_BACKUP_MAIL_BCC = $null
+        $env:TABLEAU_BACKUP_MAIL_SUBJECT_PREFIX = $null
+        $env:TABLEAU_BACKUP_MAIL_DELIVERY_NOTIFICATION = $null
         $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP = $null
         $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS = $null
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED = $null
@@ -258,6 +358,10 @@ Describe 'Setup script' {
             -TableauServerDataDir $tableauData `
             -BackupRoot $backupRoot `
             -MailTo 'admin@example.com' `
+            -MailCc 'cc@example.com' `
+            -MailBcc 'bcc@example.com' `
+            -MailSubjectPrefix '[Tableau Backup Test]' `
+            -MailDeliveryNotification 'OnSuccess,OnFailure' `
             -MinimumBackupFilesToKeep '4' `
             -SettingsRetentionDays '90' `
             -HttpRequestsCleanupEnabled 'true' `
@@ -268,6 +372,10 @@ Describe 'Setup script' {
         $env:TABLEAU_SERVER_DATA_DIR | Should Be $tableauData
         $env:TABLEAU_BACKUP_ROOT | Should Be $backupRoot
         $env:TABLEAU_BACKUP_MAIL_TO | Should Be 'admin@example.com'
+        $env:TABLEAU_BACKUP_MAIL_CC | Should Be 'cc@example.com'
+        $env:TABLEAU_BACKUP_MAIL_BCC | Should Be 'bcc@example.com'
+        $env:TABLEAU_BACKUP_MAIL_SUBJECT_PREFIX | Should Be '[Tableau Backup Test]'
+        $env:TABLEAU_BACKUP_MAIL_DELIVERY_NOTIFICATION | Should Be 'OnSuccess,OnFailure'
         $env:TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP | Should Be '4'
         $env:TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS | Should Be '90'
         $env:TABLEAU_BACKUP_HTTP_REQUESTS_CLEANUP_ENABLED | Should Be 'true'

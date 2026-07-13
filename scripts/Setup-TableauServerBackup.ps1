@@ -34,6 +34,18 @@ param(
     [string]$MailTo = '',
 
     [AllowEmptyString()]
+    [string]$MailCc = '',
+
+    [AllowEmptyString()]
+    [string]$MailBcc = '',
+
+    [AllowEmptyString()]
+    [string]$MailSubjectPrefix = '',
+
+    [AllowEmptyString()]
+    [string]$MailDeliveryNotification = '',
+
+    [AllowEmptyString()]
     [string]$RetentionDays = ''
     ,
 
@@ -56,11 +68,28 @@ param(
     [string]$HttpRequestsRetentionDays = '',
 
     [AllowEmptyString()]
-    [string]$ReindexEnabled = ''
+    [string]$ReindexEnabled = '',
+
+    [ValidateSet('None', 'Inspect', 'CreateOrUpdate', 'Enable', 'Disable', 'Remove')]
+    [string]$ScheduledTaskAction = 'None',
+
+    [string]$ScheduledTaskName = 'TableauServerBackup',
+
+    [ValidatePattern('^([01]?\d|2[0-3]):[0-5]\d$')]
+    [string]$ScheduledTaskDailyTime = '02:00',
+
+    [ValidateRange(1, 31)]
+    [int]$ScheduledTaskDaysInterval = 1,
+
+    [string]$ScheduledTaskRunAsUser = '',
+
+    [pscredential]$ScheduledTaskCredential
 )
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
+
+. (Join-Path (Split-Path -Parent $PSScriptRoot) 'modules\Scheduler.ps1')
 
 function Get-CurrentEnvironmentValue {
     param(
@@ -160,6 +189,10 @@ if ($Interactive) {
     $MailUseSsl = Read-SetupValue -Prompt 'SMTP SSL true/false' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_USE_SSL' -Scope $Scope)
     $MailFrom = Read-SetupValue -Prompt 'Mail From' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_FROM' -Scope $Scope)
     $MailTo = Read-SetupValue -Prompt 'Mail To, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_TO' -Scope $Scope)
+    $MailCc = Read-SetupValue -Prompt 'Mail Cc, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_CC' -Scope $Scope)
+    $MailBcc = Read-SetupValue -Prompt 'Mail Bcc, comma or semicolon separated' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_BCC' -Scope $Scope)
+    $MailSubjectPrefix = Read-SetupValue -Prompt 'Mail subject prefix' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_SUBJECT_PREFIX' -Scope $Scope)
+    $MailDeliveryNotification = Read-SetupValue -Prompt 'Mail delivery notification option' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MAIL_DELIVERY_NOTIFICATION' -Scope $Scope)
     $RetentionDays = Read-SetupValue -Prompt 'Backup retention days and final max backup files' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Scope $Scope)
     $MinimumBackupFilesToKeep = Read-SetupValue -Prompt 'Minimum backup .tsbak files to keep' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP' -Scope $Scope)
     $SettingsRetentionDays = Read-SetupValue -Prompt 'Settings retention days, blank or 0 to keep all' -CurrentValue (Get-CurrentEnvironmentValue -Name 'TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS' -Scope $Scope)
@@ -181,6 +214,10 @@ $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_SMTP_PORT' -Va
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_USE_SSL' -Value $MailUseSsl -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_FROM' -Value $MailFrom -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_TO' -Value $MailTo -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_CC' -Value $MailCc -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_BCC' -Value $MailBcc -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_SUBJECT_PREFIX' -Value $MailSubjectPrefix -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
+$results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MAIL_DELIVERY_NOTIFICATION' -Value $MailDeliveryNotification -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_RETENTION_DAYS' -Value $RetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_MINIMUM_BACKUP_FILES_TO_KEEP' -Value $MinimumBackupFilesToKeep -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_SETTINGS_RETENTION_DAYS' -Value $SettingsRetentionDays -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
@@ -191,6 +228,23 @@ $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_HTTP_REQUESTS_RETEN
 $results += Set-EnvironmentValueSafely -Name 'TABLEAU_BACKUP_REINDEX_ENABLED' -Value $ReindexEnabled -Scope $Scope -AllowOverwrite $allowOverwrite -WhatIfOnly ([bool]$WhatIfOnly)
 
 $results | Format-Table -AutoSize
+
+if ($ScheduledTaskAction -ne 'None') {
+    $projectRoot = Split-Path -Parent $PSScriptRoot
+    $scheduledTaskParams = @{
+        Action           = $ScheduledTaskAction
+        TaskName         = $ScheduledTaskName
+        BatchPath        = Join-Path $projectRoot 'TableauServerBackup.bat'
+        WorkingDirectory = $projectRoot
+        DailyTime        = $ScheduledTaskDailyTime
+        DaysInterval     = $ScheduledTaskDaysInterval
+        RunAsUser        = $ScheduledTaskRunAsUser
+        Credential       = $ScheduledTaskCredential
+        WhatIfOnly       = [bool]$WhatIfOnly
+    }
+
+    Invoke-TableauBackupScheduledTaskAction @scheduledTaskParams | Format-List
+}
 
 if (-not $WhatIfOnly) {
     Write-Host ''

@@ -2,6 +2,15 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.3.0 - 2026-07-13
+
+Scheduled-task management release.
+
+- Added setup CLI actions to inspect, preview, create/update, enable, disable, and remove the Tableau Server Backup scheduled task.
+- Added daily schedule configuration and secure credential prompting for unattended task registration; the script never writes or logs the supplied password.
+- Exposed all supported mail environment variables through interactive and non-interactive setup.
+- Added scheduler management documentation and Pester coverage for task definitions and no-side-effect previews.
+
 ## v0.2.10 - 2026-07-13
 
 Local Windows GUI roadmap release.

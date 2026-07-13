@@ -12,7 +12,8 @@
 
 ## Next
 
-- Add optional scheduled-task creation and update switches to the setup script.
+- Extend the setup CLI with scheduled-task inspection, create/update, enable/disable, removal, and `WhatIf` preview support; keep every supported environment-backed setting available non-interactively.
+- Add a self-contained x64 C# WPF configuration app for Windows Server 2019+ that manages the same User/Machine environment variables and scheduled-task settings through checkboxes, numeric fields, text fields, and path pickers. Keep it local-only, without a backend, Docker, paid subscription, or tracked local configuration; prompt for task credentials only when Windows requires them and never persist or log them.
 - Add mocked TSM command tests for command-line arguments and exit-code mapping.
 - Add log rotation for very large daily logs.
 - Add restore-drill documentation for operators.

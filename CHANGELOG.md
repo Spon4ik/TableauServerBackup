@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.2.10 - 2026-07-13
+
+Local Windows GUI roadmap release.
+
+- Added the staged CLI scheduler-management and self-contained WPF configuration-app direction to the roadmap.
+- Defined the GUI as a local-only Windows Server administration tool that keeps the CLI authoritative and avoids backend, Docker, paid subscriptions, and tracked local configuration.
+
 ## v0.2.9 - 2026-07-12
 
 Roadmap consolidation release.

@@ -14,6 +14,7 @@
 
 ## Next
 
+- Add an Authenticode code-signing release workflow for the published GUI executable: keep the certificate outside Git, timestamp each signature, publish a SHA-256 checksum, and fail release validation unless `Get-AuthenticodeSignature` reports a valid signature.
 - Add mocked TSM command tests for command-line arguments and exit-code mapping.
 - Add log rotation for very large daily logs.
 - Add restore-drill documentation for operators.

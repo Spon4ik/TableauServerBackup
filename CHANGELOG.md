@@ -2,6 +2,12 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.1 - 2026-07-13
+
+Code-signing roadmap release.
+
+- Added an Authenticode signing and verification milestone for published GUI releases.
+
 ## v0.4.0 - 2026-07-13
 
 Local Windows configuration app release.

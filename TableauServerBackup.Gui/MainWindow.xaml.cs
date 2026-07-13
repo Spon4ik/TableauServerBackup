@@ -12,6 +12,7 @@ public partial class MainWindow : Window
 {
     private readonly EnvironmentSettingsService _environmentSettings = new();
     private readonly TaskSchedulerService _taskScheduler = new();
+    private readonly TaskNamePreferenceService _taskNamePreference = new();
     private readonly List<SettingEntry> _allSettings;
     private readonly string _projectRoot;
 
@@ -28,6 +29,9 @@ public partial class MainWindow : Window
         DataContext = this;
 
         BatchPathTextBox.Text = Path.Combine(_projectRoot, "TableauServerBackup.bat");
+        TaskNameTextBox.Text = _taskNamePreference.Load() is { Length: > 0 } savedTaskName
+            ? savedTaskName
+            : TaskNameTextBox.Text;
         TaskAccountTextBox.Text = WindowsIdentity.GetCurrent().Name;
         LoadSettings();
         InspectTask();
@@ -144,6 +148,7 @@ public partial class MainWindow : Window
             if (details.Exists)
             {
                 LoadTaskDefinition(details);
+                _taskNamePreference.Save(TaskName());
                 SetStatus("Scheduled task loaded into the task definition fields.");
             }
             else

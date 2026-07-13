@@ -34,7 +34,7 @@
         </Border>
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
             <TextBlock Text="Tableau Server Backup" FontSize="26" FontWeight="SemiBold" />
-            <TextBlock Text="Local configuration and scheduled-task administration. No settings are stored in this app." Foreground="DimGray" />
+            <TextBlock Text="Local configuration and scheduled-task administration. Only the last loaded task name is remembered locally; credentials are never stored." Foreground="DimGray" />
         </StackPanel>
         <TabControl>
             <TabItem Header="Configuration">

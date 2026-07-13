@@ -54,7 +54,7 @@ Keep the output inside the repository so the app can locate `TableauServerBackup
 
 ## Scheduled Task
 
-The **Scheduled task** tab can inspect, preview, create or update, enable, disable, and remove `TableauServerBackup` (or a custom name). Enter any existing Windows Task Scheduler task name and select **Load existing task** to populate the app's task-definition fields with its batch action, account, daily start time, and repeat interval before updating it. The task runs with highest privileges.
+The **Scheduled task** tab can inspect, preview, create or update, enable, disable, and remove `TableauServerBackup` (or a custom name). Enter any existing Windows Task Scheduler task name and select **Load existing task** to populate the app's task-definition fields with its batch action, account, daily start time, and repeat interval before updating it. The last successfully loaded task name is remembered locally for the current Windows user; no credentials or backup settings are stored. The task runs with highest privileges.
 
 For create or update, enter the account allowed to run Tableau TSM and its password. The GUI clears the password after each action and never writes or logs it. Windows Task Scheduler retains a credential only when Windows requires one for unattended execution.
 

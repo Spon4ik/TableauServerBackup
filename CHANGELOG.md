@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.5 - 2026-07-13
+
+Scheduled-task selection persistence release.
+
+- Remember the last successfully loaded Windows scheduled-task name for the current user and restore it when the GUI next opens.
+- Store only that task-name preference locally; credentials and backup configuration remain unstored.
+
 ## v0.4.4 - 2026-07-13
 
 Scheduled-task configuration loading release.

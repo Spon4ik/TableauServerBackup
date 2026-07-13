@@ -135,12 +135,21 @@ public partial class MainWindow : Window
     {
         try
         {
-            var details = _taskScheduler.Inspect(TaskNameTextBox.Text.Trim());
+            var details = _taskScheduler.Inspect(TaskName());
             TaskStateText.Text = details.State;
             TaskStatusAccountText.Text = details.UserName;
             TaskActionText.Text = details.ActionPath;
-            TaskScheduleText.Text = details.StartBoundary;
-            SetStatus(details.Exists ? "Scheduled task loaded." : "Scheduled task was not found.");
+            TaskScheduleText.Text = FormatSchedule(details);
+
+            if (details.Exists)
+            {
+                LoadTaskDefinition(details);
+                SetStatus("Scheduled task loaded into the task definition fields.");
+            }
+            else
+            {
+                SetStatus("Scheduled task was not found.");
+            }
         }
         catch (Exception exception)
         {
@@ -224,6 +233,41 @@ public partial class MainWindow : Window
     private int TaskInterval() => int.TryParse(TaskIntervalTextBox.Text, out var days) && days is >= 1 and <= 31
         ? days
         : throw new InvalidOperationException("Every N days must be between 1 and 31.");
+
+    private void LoadTaskDefinition(ScheduledTaskDetails details)
+    {
+        if (!string.IsNullOrWhiteSpace(details.ActionPath))
+        {
+            BatchPathTextBox.Text = details.ActionPath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.UserName))
+        {
+            TaskAccountTextBox.Text = details.UserName;
+        }
+
+        if (details.DaysInterval is >= 1 and <= 31)
+        {
+            TaskIntervalTextBox.Text = details.DaysInterval.Value.ToString();
+        }
+
+        if (DateTime.TryParse(details.StartBoundary, out var start))
+        {
+            TaskTimeTextBox.Text = start.ToString("HH:mm");
+        }
+    }
+
+    private static string FormatSchedule(ScheduledTaskDetails details)
+    {
+        if (!details.Exists)
+        {
+            return string.Empty;
+        }
+
+        var interval = details.DaysInterval is > 0 ? $" every {details.DaysInterval} day(s)" : string.Empty;
+        var workingDirectory = string.IsNullOrWhiteSpace(details.WorkingDirectory) ? string.Empty : $"; working directory: {details.WorkingDirectory}";
+        return $"{details.StartBoundary}{interval}{workingDirectory}";
+    }
 
     private void SetStatus(string text, bool isError = false)
     {

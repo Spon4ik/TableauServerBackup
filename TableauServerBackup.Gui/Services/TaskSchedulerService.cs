@@ -3,7 +3,14 @@ using System.IO;
 
 namespace TableauServerBackup.Gui.Services;
 
-public sealed record ScheduledTaskDetails(bool Exists, string State, string UserName, string ActionPath, string StartBoundary);
+public sealed record ScheduledTaskDetails(
+    bool Exists,
+    string State,
+    string UserName,
+    string ActionPath,
+    string StartBoundary,
+    int? DaysInterval,
+    string WorkingDirectory);
 
 public sealed class TaskSchedulerService
 {
@@ -22,17 +29,21 @@ public sealed class TaskSchedulerService
             dynamic task = folder.GetTask(taskName);
             var actionPath = string.Empty;
             var startBoundary = string.Empty;
+            int? daysInterval = null;
+            var workingDirectory = string.Empty;
 
             if (task.Definition.Actions.Count > 0)
             {
                 dynamic action = task.Definition.Actions.Item(1);
                 actionPath = (string?)action.Path ?? string.Empty;
+                workingDirectory = (string?)action.WorkingDirectory ?? string.Empty;
             }
 
             if (task.Definition.Triggers.Count > 0)
             {
                 dynamic trigger = task.Definition.Triggers.Item(1);
                 startBoundary = (string?)trigger.StartBoundary ?? string.Empty;
+                daysInterval = (int?)trigger.DaysInterval;
             }
 
             return new ScheduledTaskDetails(
@@ -40,11 +51,13 @@ public sealed class TaskSchedulerService
                 MapState((int)task.State),
                 (string?)task.Definition.Principal.UserId ?? string.Empty,
                 actionPath,
-                startBoundary);
+                startBoundary,
+                daysInterval,
+                workingDirectory);
         }
         catch (COMException exception) when ((uint)exception.HResult == 0x80070002)
         {
-            return new ScheduledTaskDetails(false, "Not found", string.Empty, string.Empty, string.Empty);
+            return new ScheduledTaskDetails(false, "Not found", string.Empty, string.Empty, string.Empty, null, string.Empty);
         }
     }
 

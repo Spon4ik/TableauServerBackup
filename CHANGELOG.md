@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.4 - 2026-07-13
+
+Scheduled-task configuration loading release.
+
+- Added support for loading an existing custom-named Windows scheduled task directly into the GUI's editable task fields, including its action path, account, start time, and repeat interval.
+- Made the loaded batch action editable so an existing task can be reviewed and updated without resetting its command path.
+
 ## v0.4.3 - 2026-07-13
 
 Windows Server compatibility fix release.

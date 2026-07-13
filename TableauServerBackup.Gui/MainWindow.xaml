@@ -90,8 +90,8 @@
                                 <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                 <Label Content="Task name" Target="{Binding ElementName=TaskNameTextBox}" />
                                 <TextBox x:Name="TaskNameTextBox" Grid.Column="1" Text="TableauServerBackup" />
-                                <Label Grid.Row="1" Content="Project batch file" Target="{Binding ElementName=BatchPathTextBox}" />
-                                <TextBox x:Name="BatchPathTextBox" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
+                                <Label Grid.Row="1" Content="Batch file" Target="{Binding ElementName=BatchPathTextBox}" />
+                                <TextBox x:Name="BatchPathTextBox" Grid.Row="1" Grid.Column="1" />
                                 <Label Grid.Row="2" Content="Daily start time (24-hour)" Target="{Binding ElementName=TaskTimeTextBox}" />
                                 <TextBox x:Name="TaskTimeTextBox" Grid.Row="2" Grid.Column="1" Text="02:00" />
                                 <Label Grid.Row="3" Content="Every N days" Target="{Binding ElementName=TaskIntervalTextBox}" />
@@ -107,7 +107,7 @@
                             </StackPanel>
                         </GroupBox>
                         <WrapPanel>
-                            <Button Content="Inspect" Click="InspectTask_Click" />
+                            <Button Content="Load existing task" Click="InspectTask_Click" />
                             <Button Content="Preview" Click="PreviewTask_Click" />
                             <Button Content="Create or update" Click="CreateOrUpdateTask_Click" FontWeight="SemiBold" />
                             <Button Content="Enable" Click="EnableTask_Click" />

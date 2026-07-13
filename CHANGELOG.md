@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.3 - 2026-07-13
+
+Windows Server compatibility fix release.
+
+- Retargeted the self-contained WPF GUI to .NET 8 LTS after .NET 10 crashed before its first window opened on Windows Server 2019 (build 17763).
+- Updated GUI build requirements so an existing .NET 8 SDK can publish the executable.
+
 ## v0.4.2 - 2026-07-13
 
 GUI build-instructions release.

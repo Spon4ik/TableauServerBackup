@@ -7,13 +7,13 @@
 ### Requirements
 
 - Windows x64.
-- The **.NET 10 SDK**. Confirm it before building:
+- The **.NET 8 SDK** (or a later SDK that supports `net8.0-windows`). Confirm it before building:
 
 ```powershell
 dotnet --list-sdks
 ```
 
-The output must include a `10.0.*` SDK. .NET 8 cannot build this project because the GUI targets `net10.0-windows`.
+The output must include an `8.0.*` SDK or later. The app targets `.NET 8 LTS` for reliable Windows Server 2019 compatibility. The downloaded self-contained release executable does not need an SDK or a separately installed .NET runtime to run.
 
 ### Build from the repository root
 

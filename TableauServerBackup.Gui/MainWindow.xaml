@@ -1,0 +1,132 @@
+<Window x:Class="TableauServerBackup.Gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:TableauServerBackup.Gui.Converters"
+        Title="Tableau Server Backup Configuration"
+        Width="1080" Height="760" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
+        <converters:InverseBooleanToVisibilityConverter x:Key="VisibleWhenFalse" />
+        <DataTemplate x:Key="SettingTemplate">
+            <Grid Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding HelpText}" Foreground="DimGray" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" Content="Enabled"
+                          IsChecked="{Binding BooleanValue, Mode=TwoWay}"
+                          Visibility="{Binding IsBoolean, Converter={StaticResource VisibleWhenTrue}}" />
+                <TextBox Grid.Column="1" VerticalAlignment="Center" Margin="0"
+                         Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Visibility="{Binding IsBoolean, Converter={StaticResource VisibleWhenFalse}}"
+                         AutomationProperties.Name="{Binding Label}" />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+    <DockPanel Margin="18">
+        <Border DockPanel.Dock="Bottom" Background="#EEF3F8" CornerRadius="4" Padding="10" Margin="0,12,0,0">
+            <TextBlock x:Name="StatusText" Text="Ready." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        </Border>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <TextBlock Text="Tableau Server Backup" FontSize="26" FontWeight="SemiBold" />
+            <TextBlock Text="Local configuration and scheduled-task administration. No settings are stored in this app." Foreground="DimGray" />
+        </StackPanel>
+        <TabControl>
+            <TabItem Header="Configuration">
+                <DockPanel Margin="14">
+                    <Border DockPanel.Dock="Top" Background="#F5F7FA" Padding="10" CornerRadius="4" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Text="Save settings to:" Margin="0,0,8,0" />
+                            <ComboBox x:Name="ScopeComboBox" Grid.Column="1" SelectedIndex="1" AutomationProperties.Name="Environment-variable scope">
+                                <ComboBoxItem Content="User" />
+                                <ComboBoxItem Content="Machine (administrator)" />
+                            </ComboBox>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                <Button Content="Reload" Click="ReloadSettings_Click" />
+                                <Button Content="Apply settings" Click="ApplySettings_Click" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <GroupBox Header="Directories and retention">
+                                <StackPanel>
+                                    <ItemsControl ItemsSource="{Binding GeneralSettings}" ItemTemplate="{StaticResource SettingTemplate}" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Browse Tableau directory" Click="BrowseTableauDirectory_Click" />
+                                        <Button Content="Browse backup root" Click="BrowseBackupRoot_Click" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </GroupBox>
+                            <GroupBox Header="Maintenance">
+                                <ItemsControl ItemsSource="{Binding MaintenanceSettings}" ItemTemplate="{StaticResource SettingTemplate}" />
+                            </GroupBox>
+                            <GroupBox Header="Email notifications">
+                                <ItemsControl ItemsSource="{Binding EmailSettings}" ItemTemplate="{StaticResource SettingTemplate}" />
+                            </GroupBox>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Scheduled task">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22" MaxWidth="800">
+                        <TextBlock Text="Windows Task Scheduler" FontSize="20" FontWeight="SemiBold" />
+                        <TextBlock Text="Create and maintain the task that starts the existing TableauServerBackup.bat entry point." Foreground="DimGray" Margin="0,2,0,14" TextWrapping="Wrap" />
+                        <GroupBox Header="Task definition">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <Label Content="Task name" Target="{Binding ElementName=TaskNameTextBox}" />
+                                <TextBox x:Name="TaskNameTextBox" Grid.Column="1" Text="TableauServerBackup" />
+                                <Label Grid.Row="1" Content="Project batch file" Target="{Binding ElementName=BatchPathTextBox}" />
+                                <TextBox x:Name="BatchPathTextBox" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
+                                <Label Grid.Row="2" Content="Daily start time (24-hour)" Target="{Binding ElementName=TaskTimeTextBox}" />
+                                <TextBox x:Name="TaskTimeTextBox" Grid.Row="2" Grid.Column="1" Text="02:00" />
+                                <Label Grid.Row="3" Content="Every N days" Target="{Binding ElementName=TaskIntervalTextBox}" />
+                                <TextBox x:Name="TaskIntervalTextBox" Grid.Row="3" Grid.Column="1" Text="1" />
+                                <Label Grid.Row="4" Content="Windows task account" Target="{Binding ElementName=TaskAccountTextBox}" />
+                                <TextBox x:Name="TaskAccountTextBox" Grid.Row="4" Grid.Column="1" />
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Credential for create or update">
+                            <StackPanel>
+                                <TextBlock Text="The password is used only for this action. The app never writes or logs it; Windows Task Scheduler retains it only when required for unattended execution." TextWrapping="Wrap" Foreground="DimGray" />
+                                <PasswordBox x:Name="TaskPasswordBox" Margin="0,8,0,0" AutomationProperties.Name="Windows task-account password" />
+                            </StackPanel>
+                        </GroupBox>
+                        <WrapPanel>
+                            <Button Content="Inspect" Click="InspectTask_Click" />
+                            <Button Content="Preview" Click="PreviewTask_Click" />
+                            <Button Content="Create or update" Click="CreateOrUpdateTask_Click" FontWeight="SemiBold" />
+                            <Button Content="Enable" Click="EnableTask_Click" />
+                            <Button Content="Disable" Click="DisableTask_Click" />
+                            <Button Content="Remove" Click="RemoveTask_Click" />
+                        </WrapPanel>
+                        <GroupBox Header="Current task status" Margin="0,18,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="150" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock Text="State" FontWeight="SemiBold" /><TextBlock x:Name="TaskStateText" Grid.Column="1" />
+                                <TextBlock Grid.Row="1" Text="Account" FontWeight="SemiBold" /><TextBlock x:Name="TaskStatusAccountText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="2" Text="Action" FontWeight="SemiBold" /><TextBlock x:Name="TaskActionText" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="3" Text="Schedule" FontWeight="SemiBold" /><TextBlock x:Name="TaskScheduleText" Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" />
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

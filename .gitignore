@@ -24,3 +24,7 @@ nppBackup/
 TestResults/
 *.tmp
 
+# Local .NET GUI build and publish output
+**/bin/
+**/obj/
+TableauServerBackup.Gui/publish/

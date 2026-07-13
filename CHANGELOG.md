@@ -2,6 +2,14 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.0 - 2026-07-13
+
+Local Windows configuration app release.
+
+- Added a self-contained x64 WPF app for viewing and editing every environment-backed backup setting with grouped text fields and checkboxes.
+- Added secure local Windows Task Scheduler inspection, preview, create/update, enable, disable, and removal from the app.
+- Added GUI build verification to project checks and documented publishing, accessibility, scope, and credential behavior.
+
 ## v0.3.0 - 2026-07-13
 
 Scheduled-task management release.

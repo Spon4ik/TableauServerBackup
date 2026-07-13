@@ -22,6 +22,9 @@ function Get-ScannableFiles {
         Get-ChildItem -LiteralPath $itemPath -Recurse -File -ErrorAction Stop |
             Where-Object {
                 $_.FullName -notmatch '\\\.git\\' -and
+                $_.FullName -notmatch '\\bin\\' -and
+                $_.FullName -notmatch '\\obj\\' -and
+                $_.FullName -notmatch '\\publish\\' -and
                 $_.FullName -notmatch '\\nppBackup\\' -and
                 $_.Name -notmatch '\.local\.json$' -and
                 $_.Name -notmatch '^MailSettings\.json$' -and

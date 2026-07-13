@@ -29,3 +29,11 @@ if (@($parseErrors).Count -gt 0) {
 }
 
 Invoke-Pester -Script (Join-Path $projectRoot 'tests') -EnableExit
+
+$guiProject = Join-Path $projectRoot 'TableauServerBackup.Gui\TableauServerBackup.Gui.csproj'
+if (Test-Path -LiteralPath $guiProject -PathType Leaf) {
+    & dotnet build $guiProject --configuration Release
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}

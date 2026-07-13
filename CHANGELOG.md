@@ -2,6 +2,12 @@
 
 This project uses Semantic Versioning with Git tags in the form `vMAJOR.MINOR.PATCH`.
 
+## v0.4.2 - 2026-07-13
+
+GUI build-instructions release.
+
+- Clarified the required .NET 10 SDK and correct self-contained publish commands from both supported working directories.
+
 ## v0.4.1 - 2026-07-13
 
 Code-signing roadmap release.

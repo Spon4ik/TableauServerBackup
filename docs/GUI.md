@@ -4,13 +4,46 @@
 
 ## Use
 
-Build and publish the self-contained app from the repository root:
+### Requirements
+
+- Windows x64.
+- The **.NET 10 SDK**. Confirm it before building:
+
+```powershell
+dotnet --list-sdks
+```
+
+The output must include a `10.0.*` SDK. .NET 8 cannot build this project because the GUI targets `net10.0-windows`.
+
+### Build from the repository root
+
+Run this only when the prompt is at the repository root, for example `Y:\TableauServerBackup`:
 
 ```powershell
 dotnet publish .\TableauServerBackup.Gui\TableauServerBackup.Gui.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o .\TableauServerBackup.Gui\publish
 ```
 
-Launch `TableauServerBackup.Gui.exe` from that output folder. Keep the output inside the repository so the app can locate `TableauServerBackup.bat`; the app uses that existing batch entry point for the scheduled task.
+The executable will be at:
+
+```text
+Y:\TableauServerBackup\TableauServerBackup.Gui\publish\TableauServerBackup.Gui.exe
+```
+
+### Build from the GUI project folder
+
+If the prompt is already at `Y:\TableauServerBackup\TableauServerBackup.Gui`, do **not** repeat `TableauServerBackup.Gui` in the project path. Run:
+
+```powershell
+dotnet publish .\TableauServerBackup.Gui.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o .\publish
+```
+
+The executable will be at:
+
+```text
+Y:\TableauServerBackup\TableauServerBackup.Gui\publish\TableauServerBackup.Gui.exe
+```
+
+Keep the output inside the repository so the app can locate `TableauServerBackup.bat`; the app uses that existing batch entry point for the scheduled task.
 
 ## Configuration
 
